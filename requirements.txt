@@ -1,0 +1,7 @@
+# Shared across the whole learning track (01-, 02-, 03-, 04-) --
+# one venv at the repo root, not per-module. Grows as new modules
+# introduce new concepts (e.g. langchain-anthropic once the supervisor's
+# LLM shows up).
+langgraph==1.2.11
+httpx==0.28.1
+pytest==9.1.1

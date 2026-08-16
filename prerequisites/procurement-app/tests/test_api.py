@@ -1,36 +1,7 @@
 """
-Uses an in-memory SQLite DB per test session and overrides the app's
-get_session dependency -- the standard FastAPI pattern for testing without
-touching the real procurement.db file.
+Fixtures (session, client) come from conftest.py -- real Postgres,
+savepoint-per-test isolation. Nothing SQLite-specific left here.
 """
-import pytest
-from fastapi.testclient import TestClient
-from sqlmodel import Session, SQLModel, create_engine
-from sqlmodel.pool import StaticPool
-
-from app.database import get_session
-from app.main import app
-
-
-@pytest.fixture(name="session")
-def session_fixture():
-    engine = create_engine("sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool)
-    SQLModel.metadata.create_all(engine)
-    with Session(engine) as session:
-        yield session
-
-
-@pytest.fixture(name="client")
-def client_fixture(session: Session):
-    def get_session_override():
-        return session
-
-    app.dependency_overrides[get_session] = get_session_override
-    client = TestClient(app)
-    yield client
-    app.dependency_overrides.clear()
-
-
 def _create_vendor(client, **overrides):
     payload = {"name": "Dell Business", "category": "laptops", "rating": 4.6}
     payload.update(overrides)

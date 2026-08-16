@@ -25,6 +25,46 @@ mocked functions. Everything under a numbered module folder is the actual
 hands-on track: written exercise-by-exercise, reviewed, committed piece by
 piece — that's where the mastery is meant to happen.
 
+## Python environments
+
+Two separate venvs, not one shared across the repo (let alone across
+everything in `agentic-ai\`) — the procurement app is a service with its
+own dependency lifecycle, the numbered modules are a learning track that
+shares one growing dependency set. They never share code, only an HTTP
+boundary, so there's no reason to share a venv either.
+
+```
+.venv\                          learning track — shared by 01-, 02-, 03-, 04-
+prerequisites\procurement-app\.venv\   its own, separate
+```
+
+**Use `uv`, not plain pip+venv.** Two fully isolated venvs still share one
+global package cache (hardlinked, not copied) — measured ~190MB with plain
+pip down to ~88MB real disk with `uv`, confirmed via matching inodes for
+shared packages like `httpx`. Same isolation, no duplication cost.
+
+```powershell
+irm https://astral.sh/uv/install.ps1 | iex     # one-time install
+
+# procurement app
+cd prerequisites\procurement-app
+uv venv
+uv pip install -r requirements.txt
+
+# learning track (from repo root)
+uv venv
+uv pip install -r requirements.txt
+```
+
+Activation is unchanged either way: `.venv\Scripts\Activate.ps1`.
+
+**Same-drive caveat:** hardlinks only work within one physical drive. If
+`uv cache dir` resolves outside `P:\`, force it there so the savings
+actually apply: `$env:UV_CACHE_DIR = "P:\uv-cache"`.
+
+If `Activate.ps1` fails with an execution-policy error, run once per
+machine: `Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned`
+
 ## Getting started
 
 ```powershell

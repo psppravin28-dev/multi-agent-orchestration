@@ -1,21 +1,22 @@
 """
-SQLite for local dev -- zero setup, file-based, good enough for the whole
-learning track. Swap DATABASE_URL for a Postgres URL when this moves toward
-a real deployment; nothing else in the app needs to change because we only
-use SQLModel's engine-agnostic API.
+Postgres only. No SQLite fallback — one database, no ambiguity about which
+environment you're pointed at. Requires docker-compose (or a native
+Postgres install) to be running; see README for setup.
 """
 import os
 from typing import Generator
 
+from dotenv import load_dotenv
 from sqlmodel import Session, SQLModel, create_engine
 
-DATABASE_URL = os.environ.get("PROCUREMENT_DB_URL", "sqlite:///./procurement.db")
+load_dotenv()  # reads .env in the current working directory, if present
 
-# check_same_thread=False is SQLite-specific and required because FastAPI
-# can serve a request on a different thread than the one that created the
-# connection. Not needed / not present for Postgres.
-connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
-engine = create_engine(DATABASE_URL, connect_args=connect_args)
+DATABASE_URL = os.environ.get(
+    "DATABASE_URL",
+    "postgresql+psycopg://procurement:procurement@localhost:5432/procurement",
+)
+
+engine = create_engine(DATABASE_URL)
 
 
 def init_db() -> None:
