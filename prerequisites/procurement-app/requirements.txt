@@ -1,0 +1,5 @@
+fastapi==0.141.1
+sqlmodel==0.0.39
+uvicorn==0.52.3
+httpx==0.28.1
+pytest==9.1.1
