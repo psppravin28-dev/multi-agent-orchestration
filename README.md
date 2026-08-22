@@ -16,6 +16,9 @@ prerequisites/           Delivered code -- not the learning focus.
 02-handoff-patterns/          <- (complete)
 03-specialist-network/        <- (complete)
 04-swarm-intelligence/        <- (complete)
+learning-path/                 <- Concept-by-concept notes, written while working through
+                                   the modules above -- start at learning-path/README.md.
+wiki/                           <- Same notes, reformatted for the GitHub Wiki (see below).
 ```
 
 **The split is deliberate.** Everything under `prerequisites/` is

@@ -158,3 +158,4 @@ def _run(raw_request: str) -> None:
 if __name__ == "__main__":
     _run("Set up a contract with vendor 1, liability cap $30000, Net-30")
     _run("Set up a contract with vendor 2, liability cap $200000, Net-60, 24 months")
+    _run("Set up a contract with vendor 6, liability cap $50000, Net-30")
