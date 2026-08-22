@@ -1,11 +1,6 @@
 """
 Exercise 1: LangGraph mechanics warm-up (no LLM yet)
 Two nodes: parse a request, then look up real vendors from the procurement app.
-
-Before running: make sure the procurement app is up --
-    cd ../prerequisites/procurement-app
-    docker compose up -d
-    uvicorn app.main:app --reload
 """
 from typing import Optional
 from typing_extensions import TypedDict
@@ -13,6 +8,8 @@ from langgraph.graph import StateGraph, START, END
 import httpx
 
 PROCUREMENT_API_URL = "http://127.0.0.1:8000"
+
+KNOWN_CATEGORIES = ["laptops", "office_supplies", "software_licenses"]
 
 
 class IntakeState(TypedDict):
@@ -23,41 +20,41 @@ class IntakeState(TypedDict):
 
 
 def parse_request(state: IntakeState) -> dict:
-    """
-    TODO: extract category and amount_usd from state["raw_request"].
+    text = state["raw_request"]
 
-    Example input:  "50 laptops, budget $60000"
-    Expected output: category="laptops", amount_usd=60000.0
+    category = next((c for c in KNOWN_CATEGORIES if c in text), None)
 
-    Keep it simple, no regex library needed:
-      - category = whichever known word from
-        ["laptops", "office_supplies", "software_licenses"] appears in the text
-      - amount_usd = the digits right after the "$" sign, as a float
+    amount_usd = None
+    if "$" in text:
+        after_dollar = text.split("$", 1)[1]
+        digits = ""
+        for char in after_dollar:
+            if char.isdigit():
+                digits += char
+            else:
+                break
+        if digits:
+            amount_usd = float(digits)
 
-    Return only the keys you're setting -- e.g. {"category": ..., "amount_usd": ...}
-    """
-    # YOUR CODE HERE
-    ...
+    return {"category": category, "amount_usd": amount_usd}
 
 
 def lookup_vendors(state: IntakeState) -> dict:
-    """
-    TODO: call the real procurement app --
-    GET {PROCUREMENT_API_URL}/vendors?category=<category>&min_rating=4.0
-    Store the parsed JSON list into vendor_results.
-    """
-    # YOUR CODE HERE
-    ...
+    response = httpx.get(
+        f"{PROCUREMENT_API_URL}/vendors",
+        params={"category": state["category"], "min_rating": 4.0},
+    )
+    response.raise_for_status()
+    return {"vendor_results": response.json()}
 
 
-# --- graph wiring ---
-# TODO:
-#   1. graph = StateGraph(IntakeState)
-#   2. add both nodes with graph.add_node("name", function)
-#   3. wire START -> parse_request -> lookup_vendors -> END with graph.add_edge(...)
-#   4. compile it: app_graph = graph.compile()
-
-app_graph = None  # replace this
+graph = StateGraph(IntakeState)
+graph.add_node("parse_request", parse_request)
+graph.add_node("lookup_vendors", lookup_vendors)
+graph.add_edge(START, "parse_request")
+graph.add_edge("parse_request", "lookup_vendors")
+graph.add_edge("lookup_vendors", END)
+app_graph = graph.compile()
 
 
 if __name__ == "__main__":

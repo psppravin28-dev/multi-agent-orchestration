@@ -1,4 +1,4 @@
-import hashlib
+import uuid
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session
@@ -11,9 +11,11 @@ from app.schemas import ComplianceCheckRequest, PurchaseOrderApprove, PurchaseOr
 router = APIRouter(prefix="/purchase-orders", tags=["purchase-orders"])
 
 
-def _generate_po_number(vendor_id: int, amount_usd: float) -> str:
-    digest = hashlib.sha1(f"{vendor_id}{amount_usd}{PurchaseOrder.__name__}".encode()).hexdigest()[:6]
-    return f"PO-{digest.upper()}"
+def _generate_po_number() -> str:
+    # Random, not derived from vendor_id/amount_usd -- two POs for the same
+    # vendor and amount (a common case: repeat orders) must not collide on
+    # the unique po_number constraint.
+    return f"PO-{uuid.uuid4().hex[:6].upper()}"
 
 
 @router.post("", response_model=PurchaseOrder, status_code=201)
@@ -33,7 +35,7 @@ def create_purchase_order(payload: PurchaseOrderCreate, session: Session = Depen
     )
 
     po = PurchaseOrder(
-        po_number=_generate_po_number(payload.vendor_id, payload.amount_usd),
+        po_number=_generate_po_number(),
         vendor_id=payload.vendor_id,
         amount_usd=payload.amount_usd,
         requested_by=payload.requested_by,
