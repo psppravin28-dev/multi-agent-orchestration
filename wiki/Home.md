@@ -16,12 +16,10 @@ Only *how they're coordinated* changes module to module:
 |---|---|---|
 | [[Module 1 Hierarchical Delegation]] | One boss decides who does what | `add_conditional_edges`, then a `Command` loop |
 | [[Module 2 Handoff Patterns]] | Can an agent pass control directly to another, no boss involved? | `Command(goto=...)` between peers |
-| Module 3: Specialist network | What if the LLM itself picks which tool to call? | native tool-calling (`bind_tools`) |
-| Module 4: Swarm intelligence | What if many agents work at once and vote? | `Send` fan-out + consensus |
+| [[Module 3 Specialist Network]] | What if the LLM itself picks which tool to call? | native tool-calling (`bind_tools`) |
+| [[Module 4 Swarm Intelligence]] | What if many agents work at once and vote? | `Send` fan-out + consensus |
 
-Pages for modules 3-4 will be added here as they're worked through.
-
-Once you've read at least Modules 1 and 2, see
+Once you've read all four modules, see
 [[Module Comparison]] for pros/cons of all four modules and a reasoned
 recommendation on which pattern(s) actually belong in production.
 
